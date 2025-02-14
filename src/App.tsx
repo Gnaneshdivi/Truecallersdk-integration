@@ -15,10 +15,10 @@ const App: React.FC = () => {
 
   const handleLogin = () => {
     const requestNonce = Math.random().toString(36).substring(2, 10); // Generate a unique request nonce
-    const partnerKey = "xVmuK4fc94fc4f23d47dcab85ffaf4c9fe7b6"; 
+    const partnerKey = "YipB7541c86cf099d42c29147d52a833fbb00"; 
     const privacyUrl = "https://myapp.com/privacy";
     const termsUrl = "https://myapp.com/terms";
-    const partnerName = "Rewardsy Test";
+    const partnerName = "Truecaller";
 
     const truecallerUrl = `truecallersdk://truesdk/web_verify?
       type=btmsheet
