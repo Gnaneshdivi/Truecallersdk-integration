@@ -21,7 +21,6 @@ const Login: React.FC = () => {
 
   const handleLogin = async () => {
     setLoading(true);
-  
     const returnUrl = `${window.location.origin}/success`;
   
     try {
@@ -30,10 +29,14 @@ const Login: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ returnUrl }),
       });
-
+  
       const data = await response.json();
       if (data.whatsappUrl && data.userId) {
-        window.open(data.whatsappUrl, "_blank");
+        // Delay opening WhatsApp by 500ms to avoid blocking
+        setTimeout(() => {
+          window.location.href = data.whatsappUrl;
+        }, 500);
+  
         startPolling(data.userId);
       } else {
         alert("Error initiating login. Please try again.");
@@ -42,9 +45,10 @@ const Login: React.FC = () => {
       console.error("Error starting authentication:", error);
       alert("Something went wrong. Please try again.");
     }
-
+  
     setLoading(false);
   };
+  
 
   const startPolling = (userId: string) => {
     setPolling(true);
