@@ -1,71 +1,116 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import Success from "./Success";
 
-const App: React.FC = () => {
+const BACKEND_URL = "https://dcfe-2406-7400-94-2eff-746b-4e1d-3fd8-8f.ngrok-free.app"; // Change this
+
+const Login: React.FC = () => {
   const [authResponse, setAuthResponse] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [polling, setPolling] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if the URL has authentication response from Truecaller
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
+    const name = params.get("profileName");
+    const phoneNumber = params.get("phoneNumber");
 
     if (token) {
-      setAuthResponse(`Authentication Successful! Token: ${token}`);
+      navigate(`/success?token=${token}&profileName=${name}&phoneNumber=${phoneNumber}`);
     }
   }, []);
+  const handleLogin = async () => {
+    setLoading(true);
+  
+    // Construct returnUrl dynamically based on frontend URL
+    const returnUrl = `${window.location.origin}/success`;
+  
+    try {
+      const response = await fetch(`${BACKEND_URL}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnUrl }), // Send returnUrl to backend
+      });
+  
+      const data = await response.json();
+      if (data.whatsappUrl && data.userId) {
+        setUserId(data.userId);
+        window.open(data.whatsappUrl, "_blank");
+        startPolling(data.userId);
+      } else {
+        alert("Error initiating login. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error starting authentication:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  
+    setLoading(false);
+  };
+  
 
-  const handleLogin = () => {
-    const requestNonce = Math.random().toString(36).substring(2, 10); // Generate a unique request nonce
-    const partnerKey = "bKHikcec23e0096414494be5bfe2fceb1115d"; 
-    const privacyUrl = "https://myapp.com/privacy";
-    const termsUrl = "https://myapp.com/terms";
-    const partnerName = "app";
+  const startPolling = (userId: string) => {
+    setPolling(true);
 
-    const truecallerUrl = `truecallersdk://truesdk/web_verify?
-      type=btmsheet
-      &requestNonce=${requestNonce}
-      &partnerKey=${partnerKey}
-      &partnerName=${partnerName}
-      &lang=en
-      &privacyUrl=${encodeURIComponent(privacyUrl)}
-      &termsUrl=${encodeURIComponent(termsUrl)}
-      &loginPrefix=Login%20with
-      &loginSuffix=Truecaller
-      &ctaPrefix=Continue%20with
-      &ctaColor=%23007bff
-      &ctaTextColor=%23ffffff
-      &btnShape=rectangular
-      &skipOption=Skip
-      &ttl=300000`;
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/auth/status?userId=${userId}`);
+        const data = await response.json();
 
-    // Open Truecaller authentication
-    window.location.href = truecallerUrl;
+        if (data.authenticated) {
+          clearInterval(interval);
+          setPolling(false);
+          navigate(`/success?token=${data.token}&profileName=${data.profileName}&phoneNumber=${data.phoneNumber}`);
+        }
+      } catch (error) {
+        console.error("Error polling authentication:", error);
+      }
+    }, 3000);
   };
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Truecaller Authentication</h2>
-      <button
-        onClick={handleLogin}
-        style={{
-          padding: "10px 20px",
-          fontSize: "16px",
-          backgroundColor: "#007bff",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Login with Truecaller
-      </button>
+      <h2>Login with WhatsApp</h2>
 
-      {/* Show authentication response */}
-      {authResponse && (
+      {!authResponse ? (
+        <>
+          <button
+            onClick={handleLogin}
+            disabled={loading || polling}
+            style={{
+              padding: "10px 20px",
+              fontSize: "16px",
+              backgroundColor: loading ? "#aaa" : "#007bff",
+              color: "#fff",
+              border: "none",
+              borderRadius: "5px",
+              cursor: loading || polling ? "not-allowed" : "pointer",
+            }}
+          >
+            {loading ? "Generating WhatsApp Link..." : "Login with WhatsApp"}
+          </button>
+
+          {polling && <p>Waiting for authentication...</p>}
+        </>
+      ) : (
         <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f3f3f3", borderRadius: "5px" }}>
           <h4>{authResponse}</h4>
         </div>
       )}
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/success" element={<Success />} />
+      </Routes>
+    </Router>
   );
 };
 
