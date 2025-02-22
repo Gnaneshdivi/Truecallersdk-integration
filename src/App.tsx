@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
-import Success from "./Success";
+import { useNavigate } from "react-router-dom";
 
 const BACKEND_URL = "https://dcfe-2406-7400-94-2eff-746b-4e1d-3fd8-8f.ngrok-free.app"; // Change this
 
@@ -23,7 +22,6 @@ const Login: React.FC = () => {
   const handleLogin = async () => {
     setLoading(true);
   
-    // Construct returnUrl dynamically based on frontend URL
     const returnUrl = `${window.location.origin}/success`;
   
     try {
@@ -92,15 +90,4 @@ const Login: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/success" element={<Success />} />
-      </Routes>
-    </Router>
-  );
-};
-
-export default App;
+export default Login;
