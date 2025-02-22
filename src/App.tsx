@@ -21,7 +21,7 @@ const Login: React.FC = () => {
 
   const handleLogin = async () => {
     setLoading(true);
-    const returnUrl = `https://truecallersdk-integration.vercel.app/success`;
+    const returnUrl = `${window.location.origin}/success`;
   
     try {
       const response = await fetch(`${BACKEND_URL}/auth/signup`, {
