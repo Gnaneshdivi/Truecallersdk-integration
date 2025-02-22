@@ -4,14 +4,12 @@ import { useNavigate } from "react-router-dom";
 const Success: React.FC = () => {
   const navigate = useNavigate();
 
-  // Extract token and user details from URL
+  // Extract user details from URL
   const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
   const profileName = params.get("profileName") || "User";
   const phoneNumber = params.get("phoneNumber");
 
   const handleLogout = () => {
-    // Clear authentication by redirecting to the login page
     navigate("/");
   };
 
